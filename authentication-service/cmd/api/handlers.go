@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -13,32 +14,31 @@ func (app *Config) authenticate(w http.ResponseWriter, r *http.Request) {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
-	fmt.Println("Auth service")
+	log.Println("Auth service")
 	err := app.readJson(w, r, &reqPlayload)
 	if err != nil {
 		app.errorJson(w, err, http.StatusBadRequest)
 		return
 	}
-	fmt.Println("Reading payload")
+	log.Println("Reading payload")
 	user, err := app.Models.User.GetByEmail(reqPlayload.Email)
 	if err != nil {
 		app.errorJson(w, errors.New("invalid Credentials"), http.StatusBadRequest)
 		return
 	}
-	fmt.Println("Reading from DB")
+	log.Println("Reading from DB")
 	valid, err := user.PasswordMatches(reqPlayload.Password)
 	if err != nil || !valid {
 		app.errorJson(w, errors.New("invalid Credentials"), http.StatusBadRequest)
 		return
 	}
-	fmt.Println("Matching pwd")
+	log.Println("Matching pwd")
 	err = app.log("auth", fmt.Sprintf("Logged in user: %s", user.Email))
-	fmt.Println(err.Error())
 	if err != nil {
 		app.errorJson(w, err)
 		return
 	}
-	fmt.Println("logging")
+	log.Println("logging")
 	palyload := jsonResponse{
 		Error:   false,
 		Message: fmt.Sprintf("Logged in user %s", user.Email),
@@ -56,7 +56,7 @@ func (app *Config) log(name, data string) error {
 	entry.Data = data
 	jsonData, _ := json.Marshal(&entry)
 
-	req, err := http.NewRequest("POST", "http://logger-service/log/", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", "http://logger-service/log", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 )
 
@@ -52,7 +51,7 @@ func (app *Config) log(w http.ResponseWriter, l LogPayload) {
 		app.errorJson(w, err)
 		return
 	}
-	req, err := http.NewRequest("POST", "http://logger-service/log/", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", "http://logger-service/log", bytes.NewBuffer(jsonData))
 	if err != nil {
 		app.errorJson(w, err)
 		return
